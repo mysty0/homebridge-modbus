@@ -116,7 +116,7 @@ ModbusLights.prototype.getLightInfo = function(acc) {
 ModbusLights.prototype.setupLightService = function(service, accessory) {
 	service.getCharacteristic(Characteristic.On)
     .on('set', function(value, callback) {
-    	var ind = this.getLightInfo(accessory)//this.modbuses.find(m => accessory.displayName.includes(m.config.prefix))
+    	var ind = this.getLightInfo(accessory)
       	var modbus = this.modbuses[ind[0]]
       	modbus.setLight(ind[1], value)
       	this.light_logger.saveChange(modbus.config.prefix, modbus.light_state)

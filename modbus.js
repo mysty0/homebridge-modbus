@@ -32,7 +32,6 @@ class ModBusClient {
 
 		this.connected = false
 		this.light_state = 0
-		this.queue = []
 		this.busy = false
 		this.busy_timeout = 0
 	}
@@ -56,10 +55,6 @@ class ModBusClient {
 			clearTimeout(this.busy_timeout)
 			this.busy = false
 		}
-	}
-
-	addToQueue(name, arg) {
-		this.queue.push({"name": name, "arg": arg})
 	}
 
 	setLight(num, active) {
@@ -105,8 +100,6 @@ class ModBusClient {
 			this.updateLightState(callback)
 
 		}.bind(this))
-
-
 		this.socket.connect(this.options)
 	}
 }
