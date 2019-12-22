@@ -2,6 +2,7 @@
 var http = require('http');
 var ModBusClient = require('./modbus')
 var LightLogger = require('./light_logger')
+let mconfig = require('./mconfig.json');
 var Accessory, Service, Characteristic, UUIDGen;
 
 module.exports = function(homebridge) {
@@ -29,25 +30,25 @@ function ModbusLights(log, config, api) {
   this.log = log;
   this.config = config;
   this.accessories = [];
-  this.light_logger = new LightLogger()
-  this.modbus = new ModBusClient()
-  this.modbus.connect(function (){
+  this.light_logger = new LightLogger(mconfig.log)
+  this.modbuses = mconfig.floors.map(c => new ModBusClient(c))
+  this.modbuses.forEach((modbus, ind) => modbus.connect(function (){
   	setInterval(function (){
-  		this.modbus.updateLightState(function(){
-  			this.modbus.getStateArray().reverse().forEach(function (value, i) {
-  				//console.log(this.accessories.find(el => el.displayName == `Light ${i}`).getService(`Light ${i}`))
-  				var light_name = `Light ${i}`
+  		modbus.updateLightState(function(){
+  			modbus.getStateArray().reverse().forEach(function (value, i) {
   				var real_state = value == '0'
-  				var service = this.accessories.find(el => el.displayName == light_name).getService(Service.Lightbulb)
+  				var service = this.accessories
+  				.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
+  				.getService(Service.Lightbulb)
   				if (service.getCharacteristic(Characteristic.On).value != real_state){
-  					console.log(light_name, service.getCharacteristic(Characteristic.On).value, real_state)
+  					console.log(ind, i, service.getCharacteristic(Characteristic.On).value, real_state)
   					service.setCharacteristic(Characteristic.On, real_state)
   				}
   			}.bind(this))
   			this.api.updatePlatformAccessories(this.accessories);
   		}.bind(this))
   	}.bind(this), 1000)
-  }.bind(this))
+  }.bind(this)))
 
   this.requestServer = http.createServer(function(request, response) {
     if (request.url === "/add") {
@@ -72,7 +73,8 @@ function ModbusLights(log, config, api) {
     if (request.url === "/get_acs") {
     	response.writeHead(200, { 'Content-Type': 'application/json',
                           'Trailer': 'Content-MD5' });
-		response.write(String(this.accessories.map(e => `\n${e.displayName} is on: ${e.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value}`)));
+		response.write(String(this.accessories
+			.map(e => `\n${this.getLightInfo(e)} ${e.displayName} is on: ${e.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value}`)));
 		response.end();
     }
 
@@ -106,12 +108,19 @@ function ModbusLights(log, config, api) {
   }
 }
 
+ModbusLights.prototype.getLightInfo = function(acc) {
+	return acc.getService(Service.AccessoryInformation)
+	.getCharacteristic(Characteristic.SerialNumber).value.split(":")
+}
+
 ModbusLights.prototype.setupLightService = function(service, accessory) {
 	service.getCharacteristic(Characteristic.On)
     .on('set', function(value, callback) {
-      	this.modbus.setLight(accessory.displayName.split(' ')[1], value)
-      	this.light_logger.saveChange(this.modbus.light_state)
-	    console.log(accessory.displayName, "Light -> " + value);
+    	var ind = this.getLightInfo(accessory)//this.modbuses.find(m => accessory.displayName.includes(m.config.prefix))
+      	var modbus = this.modbuses[ind[0]]
+      	modbus.setLight(ind[1], value)
+      	this.light_logger.saveChange(modbus.config.prefix, modbus.light_state)
+	    console.log(accessory.displayName, " -> " + value);
 	    callback();
     }.bind(this));
 }
@@ -137,7 +146,7 @@ ModbusLights.prototype.configureAccessory = function(accessory) {
   this.accessories.push(accessory);
 }
 
-ModbusLights.prototype.addAccessory = function(accessoryName) {
+ModbusLights.prototype.addAccessory = function(accessoryName, ind, floor) {
   this.log("Add Accessory");
   var platform = this;
   var uuid;
@@ -153,6 +162,8 @@ ModbusLights.prototype.addAccessory = function(accessoryName) {
   // newAccessory.context.something = "Something"
   
   // Make sure you provided a name for service, otherwise it may not visible in some HomeKit apps
+  newAccessory.getService(Service.AccessoryInformation)
+  .setCharacteristic(Characteristic.SerialNumber, `${floor}:${ind}`)
   this.setupLightService(newAccessory.addService(Service.Lightbulb, accessoryName), newAccessory)
 
   this.accessories.push(newAccessory);
@@ -170,12 +181,13 @@ ModbusLights.prototype.updateAccessoriesReachability = function() {
 
 ModbusLights.prototype.addModbusAccessories = function() {
 	this.removeAccessory()
-
-    var lights = this.modbus.getStateArray()
-	lights.forEach(function (value, i) {
-		this.log(value, i)
-		this.addAccessory(`Light ${i}`)
-	}.bind(this))
+	this.modbuses.forEach((modbus, floor) => {
+	    var lights = modbus.getStateArray()
+		lights.forEach(function (value, i) {
+			this.log(value, i)
+			this.addAccessory(`${modbus.config.prefix}${i}`, i, floor)
+		}.bind(this))
+	})
 }
 
 // Sample function to show how developer can remove accessory dynamically from outside event

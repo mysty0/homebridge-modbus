@@ -1,6 +1,5 @@
-var modbus = require('./modbus')
+'use strict';
 
-var mb = new modbus()
-mb.connect(function (){
-	console.log('connected')
-})
+let jsonData = require('./mconfig.json');
+
+console.log(jsonData.floors);

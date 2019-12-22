@@ -1,0 +1,17 @@
+{
+	"log": "./log/",
+	"floors": [
+		{
+			"prefix": "Light ",
+			"ip": "192.168.1.200",
+			"register": 4,
+			"count": 7
+		},
+		{
+			"prefix": "Light 2-",
+			"ip": "192.168.1.201",
+			"register": 4,
+			"count": 7
+		}
+	]
+}

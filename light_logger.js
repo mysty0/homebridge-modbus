@@ -9,15 +9,16 @@ function pack(val, size=4) {
 }
 
 class LightLogger {
-	constructor(){
+	constructor(path){
+		this.path = path
 		this.start_time = new Date().getTime()
 	}
 
-	saveChange(light_val) {
+	saveChange(prefix, light_val) {
 		var time = pack(Math.floor(new Date().getTime()/1000))
 		var val = String.fromCharCode(light_val)
 
-		fs.appendFile(`./${this.start_time}.log`, time+val, "ascii", function (err) {
+		fs.appendFile(`${this.path}${prefix}${this.start_time}.log`, time+val, "ascii", function (err) {
 		  if (err) console.log(err)
 		});
 	}
