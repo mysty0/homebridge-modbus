@@ -60,7 +60,10 @@ class ModBusClient {
 	setLight(num, active) {
 		active = !active
 
+		var prev_light = this.light_state
 		this.setLightBit(num, active)
+		if(prev_light == this.light_state) return
+
 		this.setBusy(true)
 		retryOperation(function (){
 			return this.client.writeMultipleRegisters(this.register, [this.light_state])

@@ -32,23 +32,8 @@ function ModbusLights(log, config, api) {
   this.accessories = [];
   this.light_logger = new LightLogger(mconfig.log)
   this.modbuses = mconfig.floors.map(c => new ModBusClient(c))
-  this.modbuses.forEach((modbus, ind) => modbus.connect(function (){
-  	setInterval(function (){
-  		modbus.updateLightState(function(){
-  			modbus.getStateArray().reverse().forEach(function (value, i) {
-  				var real_state = value == '0'
-  				var service = this.accessories
-  				.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
-  				.getService(Service.Lightbulb)
-  				if (service.getCharacteristic(Characteristic.On).value != real_state){
-  					console.log(ind, i, service.getCharacteristic(Characteristic.On).value, real_state)
-  					service.setCharacteristic(Characteristic.On, real_state)
-  				}
-  			}.bind(this))
-  			this.api.updatePlatformAccessories(this.accessories);
-  		}.bind(this))
-  	}.bind(this), 1000)
-  }.bind(this)))
+  this.modbuses.forEach(mb => mb.connect())
+  setInterval(this.updateLights.bind(this), 1000)
 
   this.requestServer = http.createServer(function(request, response) {
     if (request.url === "/add") {
@@ -106,6 +91,24 @@ function ModbusLights(log, config, api) {
         platform.log("DidFinishLaunching");
       }.bind(this));
   }
+}
+
+ModbusLights.prototype.updateLights = function() {
+	this.modbuses.forEach((modbus, ind) =>  {
+		modbus.updateLightState(() => {
+			modbus.getStateArray().reverse().forEach(function (value, i) {
+				var real_state = value == '0'
+				var service = this.accessories
+				.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
+				.getService(Service.Lightbulb)
+				if (service.getCharacteristic(Characteristic.On).value != real_state){
+					console.log(ind, i, service.getCharacteristic(Characteristic.On).value, real_state)
+					service.setCharacteristic(Characteristic.On, real_state)
+				}
+			}.bind(this))
+			this.api.updatePlatformAccessories(this.accessories);
+		})
+	})
 }
 
 ModbusLights.prototype.getLightInfo = function(acc) {
@@ -182,11 +185,10 @@ ModbusLights.prototype.updateAccessoriesReachability = function() {
 ModbusLights.prototype.addModbusAccessories = function() {
 	this.removeAccessory()
 	this.modbuses.forEach((modbus, floor) => {
-	    var lights = modbus.getStateArray()
-		lights.forEach(function (value, i) {
-			this.log(value, i)
+	    for(var i = 0; i < modbus.config.count; i++)
+			//this.log(value, i)
 			this.addAccessory(`${modbus.config.prefix}${i}`, i, floor)
-		}.bind(this))
+		//}.bind(this))
 	})
 }
 
