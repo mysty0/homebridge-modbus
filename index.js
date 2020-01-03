@@ -106,7 +106,6 @@ ModbusLights.prototype.updateLights = function() {
 		modbus.updateLightState(() => {
 			modbus.getStateArray().forEach(function (value, i) {
 				var real_state = value == 0
-				console.log(ind, i, value)
 				var service = this.accessories
 				.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
 				.getService(Service.Lightbulb)

@@ -79,7 +79,6 @@ class ModBusClient {
 
 	getStateArray() {
 		return [...Array(this.config.count).keys()].map(i => (this.light_state >>> i) & 1)
-		//return this.dec2bin(this.light_state).split('').slice(0, this.config.count)
 	}
 
 	updateLightState(callback) {
