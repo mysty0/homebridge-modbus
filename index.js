@@ -63,6 +63,14 @@ function ModbusLights(log, config, api) {
 		response.end();
     }
 
+    if (request.url === "/mb_raw") {
+    	response.writeHead(200, { 'Content-Type': 'application/json',
+                          'Trailer': 'Content-MD5' });
+    	this.modbuses.forEach(m => response.write(m.dec2bin(m.light_state)))
+		
+		response.end();
+    }
+
     if (request.url == "/reachability") {
       this.updateAccessoriesReachability();
       response.writeHead(204);
@@ -96,8 +104,9 @@ function ModbusLights(log, config, api) {
 ModbusLights.prototype.updateLights = function() {
 	this.modbuses.forEach((modbus, ind) =>  {
 		modbus.updateLightState(() => {
-			modbus.getStateArray().reverse().forEach(function (value, i) {
-				var real_state = value == '0'
+			modbus.getStateArray().forEach(function (value, i) {
+				var real_state = value == 0
+				console.log(ind, i, value)
 				var service = this.accessories
 				.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
 				.getService(Service.Lightbulb)

@@ -66,7 +66,7 @@ class ModBusClient {
 
 		this.setBusy(true)
 		retryOperation(function (){
-			return this.client.writeMultipleRegisters(this.register, [this.light_state])
+			return this.client.writeSingleRegister(this.register, this.light_state)
 		}.bind(this))
 	    .then(function (resp) {
 	    	console.log("light succesfully set")
@@ -78,7 +78,8 @@ class ModBusClient {
 	}
 
 	getStateArray() {
-		return this.dec2bin(this.light_state).split('').slice(0, this.config.count)
+		return [...Array(this.config.count).keys()].map(i => (this.light_state >>> i) & 1)
+		//return this.dec2bin(this.light_state).split('').slice(0, this.config.count)
 	}
 
 	updateLightState(callback) {

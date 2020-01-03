@@ -4,13 +4,13 @@
 		{
 			"prefix": "Light ",
 			"ip": "192.168.1.200",
-			"register": 4,
+			"register": 2,
 			"count": 8
 		},
 		{
 			"prefix": "Light 2-",
 			"ip": "192.168.1.201",
-			"register": 4,
+			"register": 2,
 			"count": 7
 		}
 	]

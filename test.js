@@ -1,5 +1,7 @@
 'use strict';
+let mconfig = require('./mconfig.json');
+var ModBusClient = require('./modbus')
 
-let jsonData = require('./mconfig.json');
-
-console.log(jsonData.floors);
+var mb = new ModBusClient(mconfig.floors[1])
+mb.connect()
+mb.updateLightState(() => console.log(mb.getStateArray()))
