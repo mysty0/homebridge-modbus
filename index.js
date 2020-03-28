@@ -107,7 +107,9 @@ ModbusLights.prototype.updateLights = function() {
 			modbus.getStateArray().forEach(function (value, i) {
 				var real_state = value == 0
                 var acces = this.accessories.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
-                if(!acces) return
+                if(!acces) {
+                    acces = this.addAccessory(`${modbus.config.prefix}${i}`, i, ind)
+                }
 				var service = acces.getService(Service.Lightbulb)
 				if (service.getCharacteristic(Characteristic.On).value != real_state){
 					console.log(ind, i, service.getCharacteristic(Characteristic.On).value, real_state)
@@ -179,6 +181,7 @@ ModbusLights.prototype.addAccessory = function(accessoryName, ind, floor) {
 
   this.accessories.push(newAccessory);
   this.api.registerPlatformAccessories("homebridge-modbus-lights", "ModbusLights", [newAccessory]);
+  return newAccessory
 }
 
 ModbusLights.prototype.updateAccessoriesReachability = function() {
