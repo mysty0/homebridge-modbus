@@ -2,7 +2,6 @@
 var http = require('http');
 var ModBusClient = require('./modbus')
 var LightLogger = require('./light_logger')
-let mconfig = require('./mconfig.json');
 var Accessory, Service, Characteristic, UUIDGen;
 
 module.exports = function(homebridge) {
@@ -29,9 +28,10 @@ function ModbusLights(log, config, api) {
   var platform = this;
   this.log = log;
   this.config = config;
+  console.log(config)
   this.accessories = [];
-  this.light_logger = new LightLogger(mconfig.log)
-  this.modbuses = mconfig.floors.map(c => new ModBusClient(c))
+  this.light_logger = new LightLogger(config.log)
+  this.modbuses = config.floors.map(c => new ModBusClient(c))
   this.modbuses.forEach(mb => mb.connect())
   setInterval(this.updateLights.bind(this), 1000)
 
@@ -106,9 +106,9 @@ ModbusLights.prototype.updateLights = function() {
 		modbus.updateLightState(() => {
 			modbus.getStateArray().forEach(function (value, i) {
 				var real_state = value == 0
-				var service = this.accessories
-				.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
-				.getService(Service.Lightbulb)
+                var acces = this.accessories.find(el => this.getLightInfo(el)[0] == ind && this.getLightInfo(el)[1] == i)
+                if(!acces) return
+				var service = acces.getService(Service.Lightbulb)
 				if (service.getCharacteristic(Characteristic.On).value != real_state){
 					console.log(ind, i, service.getCharacteristic(Characteristic.On).value, real_state)
 					service.setCharacteristic(Characteristic.On, real_state)
