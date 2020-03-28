@@ -17,7 +17,11 @@ class LightLogger {
 	saveChange(prefix, light_val) {
 		var time = pack(Math.floor(new Date().getTime()/1000))
 		var val = String.fromCharCode(light_val)
-
+        
+        if (!fs.existsSync(this.path)){
+            fs.mkdirSync(this.path);
+        }
+        
 		fs.appendFile(`${this.path}${prefix}${this.start_time}.log`, time+val, "ascii", function (err) {
 		  if (err) console.log(err)
 		});

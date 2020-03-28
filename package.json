@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-modbuslights",
+  "name": "homebridge-modbus-lights",
   "version": "0.0.1",
   "description": "Sample Platform plugin for homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
@@ -8,10 +8,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/example/homebridge.git"
+    "url": "https://github.com/maplegend/homebridge-modbus.git"
   },
   "bugs": {
-    "url": "http://github.com/example/homebridge/issues"
+    "url": "https://github.com/maplegend/homebridge-modbus/issues"
   },
   "engines": {
     "node": ">=0.12.0",
@@ -20,5 +20,12 @@
   "dependencies": {
     "jsmodbus": "^4.0.0",
     "modbus-tcp": "^0.4.13"
-  }
+  },
+  "homepage": "https://github.com/maplegend/homebridge-modbus#readme",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "MapLegend"
 }
