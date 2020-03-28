@@ -1,6 +1,6 @@
 {
   "name": "homebridge-modbus-lights",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sample Platform plugin for homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
@@ -18,8 +18,7 @@
     "homebridge": ">=0.2.0"
   },
   "dependencies": {
-    "jsmodbus": "^4.0.0",
-    "modbus-tcp": "^0.4.13"
+    "jsmodbus": "^4.0.0"
   },
   "homepage": "https://github.com/maplegend/homebridge-modbus#readme",
   "main": "index.js",
